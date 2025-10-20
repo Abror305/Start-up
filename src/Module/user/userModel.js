@@ -5,32 +5,37 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
+      required: [true, "Ism kiritish majburiy"],
+      trim: true,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, "Email kiritish majburiy"],
       unique: true,
       lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: 6,
+      required: [true, "Parol kiritish majburiy"],
+      minlength: [6, "Parol kamida 6 ta belgidan iborat bo'lishi kerak"],
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true 
+  }
 );
 
-// 🔹 Parolni avtomatik hash qilish
+// Parolni saqlashdan oldin hash qilish
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
+  
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// 🔹 Parolni tekshirish uchun metod
+// Parolni tekshirish uchun metod
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
