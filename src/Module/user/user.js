@@ -16,5 +16,6 @@ router.post("/login", loginUser);
 // Protected routes
 router.get("/profile", protect, getProfile);
 router.get("/", protect, getAllUsers);
+//hellooo
 
 export default router;
