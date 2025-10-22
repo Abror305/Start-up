@@ -1,4 +1,4 @@
-import Product from "./product.model.js";
+import Product from "./productModel.js";
 
 // 🔹 CREATE - Yangi mahsulot qo'shish
 export const createProduct = async (req, res) => {

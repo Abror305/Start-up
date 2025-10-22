@@ -1,49 +1,52 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import connectDB from "./config/db.js";
-import userRoutes from "./Module/user/user.routes.js";
-import productRoutes from "./Module/product/product.routes.js";
+  import express from "express";
+  import dotenv from "dotenv";
+  import cors from "cors";
+  import connectDB from "./src/config/db.js";
 
-dotenv.config();
+  // 🔹 Module routes
+  import userRoutes from "./src/Module/user/userRoutes.js";
+  import productRoutes from "./src/Module/product/productRoutes.js";
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+  dotenv.config();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  const app = express();
+  const PORT = process.env.PORT || 5000;
 
-// Database Connection
-connectDB();
+  // 🔹 Middleware
+  app.use(cors());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/api/users", userRoutes);
-app.use("/api/products", productRoutes);
+  // 🔹 Database Connection
+  connectDB();
 
-// Root Route
-app.get("/", (req, res) => {
-  res.json({ 
-    message: "Backend API ishlamoqda ✅",
-    endpoints: {
-      users: "/api/users",
-      products: "/api/products"
-    }
+  // 🔹 Routes
+  app.use("/api/users", userRoutes);
+  app.use("/api/products", productRoutes);
+
+  // 🔹 Root Route
+  app.get("/", (req, res) => {
+    res.json({ 
+      message: "✅ Backend API ishlamoqda",
+      endpoints: {
+        users: "/api/users",
+        products: "/api/products"
+      }
+    });
   });
-});
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route topilmadi" });
-});
+  // 🔹 404 Handler
+  app.use((req, res) => {
+    res.status(404).json({ message: "❌ Route topilmadi" });
+  });
 
-// Error Handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Server xatolik yuz berdi", error: err.message });
-});
+  // 🔹 Error Handler
+  app.use((err, req, res, next) => {
+    console.error("⚠️ Error:", err.stack);
+    res.status(500).json({ message: "Server xatolik yuz berdi", error: err.message });
+  });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server ${PORT} portda ishlamoqda`);
-});
+  // 🔹 Server Start
+  app.listen(PORT, () => {
+    console.log(`🚀 Server ${PORT} portda ishlamoqda`);
+  });

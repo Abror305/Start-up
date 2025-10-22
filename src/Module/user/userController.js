@@ -1,15 +1,19 @@
 import jwt from "jsonwebtoken";
-import User from "./user.model.js";
+import User from "./userModel.js";
 
-// JWT token yaratish
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+// 🔹 Token yaratish
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" }
+  );
 };
 
 // 🔹 Register - Yangi foydalanuvchi ro'yxatdan o'tkazish
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Validatsiya
     if (!name || !email || !password) {
@@ -23,7 +27,12 @@ export const registerUser = async (req, res) => {
     }
 
     // Yangi foydalanuvchi yaratish
-    const user = await User.create({ name, email, password });
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || "user", // default user
+    });
 
     res.status(201).json({
       success: true,
@@ -31,14 +40,15 @@ export const registerUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id),
+        role: user.role,
+        token: generateToken(user),
       },
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Ro'yxatdan o'tishda xatolik", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Ro'yxatdan o'tishda xatolik",
+      error: error.message,
     });
   }
 };
@@ -64,17 +74,18 @@ export const loginUser = async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          token: generateToken(user._id),
+          role: user.role,
+          token: generateToken(user),
         },
       });
     } else {
       res.status(401).json({ message: "Email yoki parol noto'g'ri" });
     }
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Tizimga kirishda xatolik", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Tizimga kirishda xatolik",
+      error: error.message,
     });
   }
 };
@@ -83,7 +94,7 @@ export const loginUser = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    
+
     if (user) {
       res.status(200).json({
         success: true,
@@ -93,29 +104,37 @@ export const getProfile = async (req, res) => {
       res.status(404).json({ message: "Foydalanuvchi topilmadi" });
     }
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Ma'lumot olishda xatolik", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Ma'lumot olishda xatolik",
+      error: error.message,
     });
   }
 };
 
-// 🔹 Get All Users - Barcha foydalanuvchilarni olish
+// 🔹 Get All Users - Faqat adminlarga
 export const getAllUsers = async (req, res) => {
   try {
+    // 🔒 faqat adminlarga ruxsat
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Sizda bu sahifaga kirish huquqi yo‘q",
+      });
+    }
+
     const users = await User.find().select("-password");
-    
+
     res.status(200).json({
       success: true,
       count: users.length,
       data: users,
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Foydalanuvchilarni olishda xatolik", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Foydalanuvchilarni olishda xatolik",
+      error: error.message,
     });
   }
 };
